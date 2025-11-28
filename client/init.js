@@ -42,9 +42,7 @@ export function initWatching(ws, CLIENT_NAME, WATCHED_DIRS) {
 
       // 4. Pošleme zmenu všetkým ostatným
       const mtimeNs = BigInt(Math.round(stat.mtimeMs * 1_000_000));
-      const content = event !== 'unlink'
-        ? Buffer.from(normalizeLineEndings(fs.readFileSync(filePath, 'utf8'), filePath)).toString('base64')
-        : undefined;
+      const content = event !== 'unlink' ? normalizeLineEndings(filePath) : undefined;
 
       ws.send(JSON.stringify({
         type: 'file-change',

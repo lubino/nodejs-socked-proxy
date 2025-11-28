@@ -11,8 +11,7 @@ export function createMessageHandler(CLIENT_NAME, folderMap, ws) {
     const full = path.join(root, relPath)
     try {
       const stat = fs.statSync(full)
-      const content = Buffer.from(normalizeLineEndings(fs.readFileSync(full, 'utf8'), full))
-        .toString('base64')
+      const content = normalizeLineEndings(full)
       console.log(`↑ pushing newer/missing: ${folderName}/${relPath}`)
       ws.send(JSON.stringify({
         type: 'file-change',
@@ -121,9 +120,7 @@ export function createMessageHandler(CLIENT_NAME, folderMap, ws) {
         const fullPath = path.split('/').join(path.sep)
         const full = fullPath.join(root, fullPath);
         fs.mkdirSync(path.dirname(full), {recursive: true})
-        const receivedText = Buffer.from(msg.content, 'base64').toString('utf8');
-        const finalText = restoreLineEndings(receivedText, fullPath);
-        fs.writeFileSync(full, finalText, 'utf8')
+        restoreLineEndings(msg.content, fullPath);
         console.log(`↓ pulled ${msg.folder}/${msg.path}`)
       }
     }
