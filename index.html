@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket File Sync</title>
+    <style>
+        body {font-family: system-ui, sans-serif; text-align:center; padding:4rem; background:#0d1117; color:#58a6ff;}
+        h1 {color:#79c0ff;}
+        code {background:#161b22; padding:0.2em 0.4em; border-radius:6px;}
+    </style>
+</head>
+<body>
+<h1>WebSocket Sync Server</h1>
+<p>Status: <strong style="color:#7ee787">RUNNING</strong></p>
+<p>WebSocket endpoint: <code>ws://localhost:8080</code></p>
+<p>Connected clients: <strong id="count">0</strong></p>
+
+<script>
+  const ws = new WebSocket('ws://' + location.host);
+  ws.onopen = () => document.getElementById('count').textContent = '1 (you are connected as test client)';
+  ws.onclose = () => document.getElementById('count').textContent = 'disconnected';
+</script>
+</body>
+</html>

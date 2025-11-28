@@ -1,0 +1,18 @@
+{
+  "name": "websocket-file-sync",
+  "version": "1.0.0",
+  "description": "Ľahký WebSocket sync súborov medzi Windows a macOS",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "server": "node server.js",
+    "client": "node client.js",
+    "dev": "concurrently \"node server.js\" \"node client.js\""
+  },
+  "keywords": ["websocket", "sync", "files", "nodejs"],
+  "author": "Ľuboš Strapko",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}
