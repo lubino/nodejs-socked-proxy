@@ -16,7 +16,7 @@ export function initWatching(ws, CLIENT_NAME, WATCHED_DIRS) {
     }
 
     const watcher = chokidar.watch(normalized, {
-      ignored: /(^|[\/\\])\../,
+      //ignored: /(^|[\/\\])\../,
       persistent: true,
       ignoreInitial: false
     });
