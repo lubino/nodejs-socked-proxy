@@ -17,7 +17,7 @@
 <p>Connected clients: <strong id="count">0</strong></p>
 
 <script>
-  const ws = new WebSocket((localtion.protocol === "https://" ? "wss" : "ws") + '://' + location.host);
+  const ws = new WebSocket((location.protocol === "https://" ? "wss" : "ws") + '://' + location.host);
   ws.onopen = () => document.getElementById('count').textContent = '1 (you are connected as test client)';
   ws.onclose = () => document.getElementById('count').textContent = 'disconnected';
 </script>
