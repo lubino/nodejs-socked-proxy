@@ -40,7 +40,7 @@ export function initWatching(ws, CLIENT_NAME, WATCHED_DIRS) {
       }
 
       // 4. Pošleme zmenu všetkým ostatným
-      const mtimeNs = stat.mtimeMs * 1_000_000n;
+      const mtimeNs = BigInt(Math.round(stat.mtimeMs * 1_000_000));
       ws.send(JSON.stringify({
         type: 'file-change',
         client: CLIENT_NAME,
@@ -51,7 +51,7 @@ export function initWatching(ws, CLIENT_NAME, WATCHED_DIRS) {
         mtimeNs: mtimeNs.toString()
       }));
 
-      console.log(`↑ detected ${event} ${folderName}/${relative} ${mtime}`);
+      console.log(`↑ detected ${event} ${folderName}/${relative} ${mtimeNs}`);
     });
 
     watchers.push(watcher);
