@@ -9,10 +9,16 @@
     "client": "node client.js",
     "dev": "concurrently \"node server.js\" \"node client.js\""
   },
-  "keywords": ["websocket", "sync", "files", "nodejs"],
+  "keywords": [
+    "websocket",
+    "sync",
+    "files",
+    "nodejs"
+  ],
   "author": "Ľuboš Strapko",
   "license": "MIT",
   "dependencies": {
+    "chokidar": "^5.0.0",
     "ws": "^8.18.3"
   }
 }
