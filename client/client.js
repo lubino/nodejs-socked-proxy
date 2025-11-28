@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import path from 'path';
 import { initWatching } from './init.js';
 import { createMessageHandler } from './handlers.js';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 
 const SERVER_URL = 'wss://nodejs-socked-proxy.onrender.com';
 const CLIENT_NAME = `Client-${crypto.randomUUID().slice(0, 8)}`;
@@ -10,6 +11,8 @@ const CLIENT_NAME = `Client-${crypto.randomUUID().slice(0, 8)}`;
 const WATCHED_DIRS = [
   '/Users/lubino/Developer/gp/gpap-core'
 ];
+const PROXY_URL = '' //
+const agent = PROXY_URL ? new HttpsProxyAgent(PROXY_URL) : undefined;
 
 // Map: folderName → full local path
 const folderMap = {};
@@ -17,7 +20,7 @@ WATCHED_DIRS.forEach(dir => {
   folderMap[path.basename(path.normalize(dir))] = path.normalize(dir);
 });
 
-const ws = new WebSocket(SERVER_URL);
+const ws = new WebSocket(SERVER_URL, {agent});
 ws.isAlive = false;
 
 ws.on('open', () => {
