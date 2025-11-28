@@ -112,7 +112,8 @@ export function createMessageHandler(CLIENT_NAME, folderMap, ws) {
     if (msg.type === 'file-content') {
       const root = folderMap[msg.folder]
       if (root) {
-        const full = path.join(root, msg.path)
+        const fullPath = path.split('/').join(path.sep)
+        const full = fullPath.join(root, fullPath);
         fs.mkdirSync(path.dirname(full), {recursive: true})
         fs.writeFileSync(full, msg.content, 'utf8')
         console.log(`↓ pulled ${msg.folder}/${msg.path}`)

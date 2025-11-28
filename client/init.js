@@ -28,7 +28,8 @@ export function initWatching(ws, CLIENT_NAME, WATCHED_DIRS) {
       // 2. Reagujeme len na skutočné zmeny súborov (nie adresárov)
       if (!['add', 'change', 'unlink'].includes(event)) return;
 
-      const relative = path.relative(normalized, filePath);
+      const protocolPath = path.relative(normalized, filePath);
+      const relative = protocolPath.split(path.sep).join('/');
 
       // 3. Bezpečne načítaj štatistiky súboru
       let stat;

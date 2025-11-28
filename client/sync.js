@@ -6,7 +6,8 @@ export function applyRemoteFileChange(msg, folderMap) {
   const localRoot = folderMap[msg.folder];
   if (!localRoot) return;
 
-  const fullPath = path.join(localRoot, msg.path);
+  const safePath = msg.path.split('/').join(path.sep);
+  const fullPath = path.join(localRoot, safePath);
 
   try {
     if (msg.event === 'unlink') {
