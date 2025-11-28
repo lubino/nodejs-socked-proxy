@@ -21,11 +21,14 @@ export function applyRemoteFileChange(msg, folderMap) {
       if (!msg.mtime) {
         return
       }
+      const remoteMtimeNs = BigInt(msg.mtimeNs);
+      const remoteMtimeMs = Number(remoteMtimeNs) / 1_000_000;
+
       fs.mkdirSync(path.dirname(fullPath), { recursive: true });
 
       try {
         const stat = fs.statSync(fullPath)
-        if (Math.floor(stat.mtimeMs) >= msg.mtime) {
+        if (stat.mtimeMs * 1_000_000 >= remoteMtimeNs) {
           return
         }
       } catch (e) {
@@ -33,8 +36,9 @@ export function applyRemoteFileChange(msg, folderMap) {
 
       const buffer = Buffer.from(msg.content, 'base64');
       fs.writeFileSync(fullPath, buffer, 'utf8');
-      const date = new Date(msg.mtime)
-      fs.utimesSync(fullPath, date, date);
+      const atime = new Date();
+      const mtime = new Date(remoteMtimeMs);
+      fs.utimesSync(fullPath, mtime, mtime);
 
       console.log(`↓ writing ${msg.event} ${msg.folder}/${msg.path} (mtime preserved ${msg.mtime})`);
       return;
@@ -60,7 +64,7 @@ export function sendFileTree(ws, CLIENT_NAME, folderName, folderPath) {
       } else {
         files.push({
           path: rel,
-          mtime: Math.floor(stat.mtimeMs),
+          mtimeNs: (BigInt(Math.round(stat.mtimeMs * 1_000_000))).toString(),
           size: stat.size
         });
       }

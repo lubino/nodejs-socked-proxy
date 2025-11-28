@@ -40,15 +40,15 @@ export function initWatching(ws, CLIENT_NAME, WATCHED_DIRS) {
       }
 
       // 4. Pošleme zmenu všetkým ostatným
-      const mtime = Math.floor(stat.mtimeMs)
+      const mtimeNs = stat.mtimeMs * 1_000_000n;
       ws.send(JSON.stringify({
         type: 'file-change',
         client: CLIENT_NAME,
         folder: folderName,           // napr. "gpap-core"
         path: relative,               // napr. "src/index.js"
         event,                        // "add" | "change" | "unlink"
-        content: event !== 'unlink' ? fs.readFileSync(filePath, 'utf8').toString('base64') : null,
-        mtime
+        content: event !== 'unlink' ? fs.readFileSync(filePath).toString('base64') : null,
+        mtimeNs: mtimeNs.toString()
       }));
 
       console.log(`↑ detected ${event} ${folderName}/${relative} ${mtime}`);

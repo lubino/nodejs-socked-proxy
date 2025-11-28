@@ -10,7 +10,7 @@ export function createMessageHandler(CLIENT_NAME, folderMap, ws) {
     const full = path.join(root, relPath)
     try {
       const stat = fs.statSync(full)
-      const content = fs.readFileSync(full, 'utf8').toString('base64')
+      const content = fs.readFileSync(full).toString('base64')
       console.log(`↑ pushing newer/missing: ${folderName}/${relPath}`)
       ws.send(JSON.stringify({
         type: 'file-change',
@@ -19,7 +19,7 @@ export function createMessageHandler(CLIENT_NAME, folderMap, ws) {
         path: relPath,
         event: 'change',           // or 'add' – doesn't matter, both trigger write
         content,
-        mtime: Math.floor(stat.mtimeMs)
+        mtimeNs: (BigInt(Math.round(stat.mtimeMs * 1_000_000))).toString()
       }))
     } catch (e) {
     }
@@ -57,7 +57,7 @@ export function createMessageHandler(CLIENT_NAME, folderMap, ws) {
         try {
           const localStat = fs.statSync(localPath)
           // Remote is newer → we already pull it via request-files (previous version)
-          if (Math.floor(localStat.mtimeMs) > remoteFile.mtime) {
+          if (BigInt(Math.round(localStat.mtimeMs * 1_000_000)) > BigInt(remoteFile.mtimeNs)) {
             toPush.push(remoteFile.path)
           }
         } catch (e) {
@@ -82,7 +82,7 @@ export function createMessageHandler(CLIENT_NAME, folderMap, ws) {
               toPush.push(rel)
             } else {
               const remoteFile = msg.files.find(f => f.path === rel)
-              if (Math.floor(stat.mtimeMs) > remoteFile.mtime) {
+              if (stat.mtimeMs * 1_000_000n > remoteFile.mtime) {
                 toPush.push(rel)
               }
             }
