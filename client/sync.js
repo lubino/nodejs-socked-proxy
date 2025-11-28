@@ -31,7 +31,8 @@ export function applyRemoteFileChange(msg, folderMap) {
       } catch (e) {
       }
 
-      fs.writeFileSync(fullPath, msg.content || '', 'utf8');
+      const buffer = Buffer.from(msg.content, 'base64');
+      fs.writeFileSync(fullPath, buffer, 'utf8');
       const date = new Date(msg.mtime)
       fs.utimesSync(fullPath, date, date);
 

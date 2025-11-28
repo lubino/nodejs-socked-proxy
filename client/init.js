@@ -47,7 +47,7 @@ export function initWatching(ws, CLIENT_NAME, WATCHED_DIRS) {
         folder: folderName,           // napr. "gpap-core"
         path: relative,               // napr. "src/index.js"
         event,                        // "add" | "change" | "unlink"
-        content: event !== 'unlink' ? fs.readFileSync(filePath, 'utf8') : null,
+        content: event !== 'unlink' ? fs.readFileSync(filePath, 'utf8').toString('base64') : null,
         mtime
       }));
 
