@@ -7,10 +7,10 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 
 const SERVER_URL = 'wss://nodejs-socked-proxy.onrender.com';
 const CLIENT_NAME = `Client-${crypto.randomUUID().slice(0, 8)}`;
-
 const WATCHED_DIRS = [
   '/Users/lubino/Developer/gp/gpap-core'
 ];
+
 const PROXY_URL = '' //
 const agent = PROXY_URL ? new HttpsProxyAgent(PROXY_URL) : undefined;
 

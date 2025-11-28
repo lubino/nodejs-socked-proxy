@@ -2,6 +2,7 @@
 import {applyRemoteFileChange, sendFileTree} from './sync.js'
 import fs from 'fs'
 import path from 'path'
+import {normalizeLineEndings, restoreLineEndings} from './file.js'
 
 export function createMessageHandler(CLIENT_NAME, folderMap, ws) {
   // Helper: push a single local file to everyone
@@ -10,7 +11,8 @@ export function createMessageHandler(CLIENT_NAME, folderMap, ws) {
     const full = path.join(root, relPath)
     try {
       const stat = fs.statSync(full)
-      const content = fs.readFileSync(full).toString('base64')
+      const content = Buffer.from(normalizeLineEndings(fs.readFileSync(full, 'utf8'), full))
+        .toString('base64')
       console.log(`↑ pushing newer/missing: ${folderName}/${relPath}`)
       ws.send(JSON.stringify({
         type: 'file-change',
@@ -57,7 +59,10 @@ export function createMessageHandler(CLIENT_NAME, folderMap, ws) {
         try {
           const localStat = fs.statSync(localPath)
           // Remote is newer → we already pull it via request-files (previous version)
-          if (BigInt(Math.round(localStat.mtimeMs * 1_000_000)) > BigInt(remoteFile.mtimeNs)) {
+          const mtimeMs = BigInt(Math.round(localStat.mtimeMs * 1_000_000))
+          const remote = BigInt(remoteFile.mtimeNs)
+          if (mtimeMs > remote) {
+            console.log(`Syncing ${folderName}/${remoteFile.path} (local newer) ${mtimeMs}>${remote}`)
             toPush.push(remoteFile.path)
           }
         } catch (e) {
@@ -82,7 +87,8 @@ export function createMessageHandler(CLIENT_NAME, folderMap, ws) {
               toPush.push(rel)
             } else {
               const remoteFile = msg.files.find(f => f.path === rel)
-              if (stat.mtimeMs * 1_000_000n > remoteFile.mtime) {
+              const mtimeNs = BigInt(Math.round(stat.mtimeMs * 1_000_000));
+              if (mtimeNs > BigInt(remoteFile.mtimeNs)) {
                 toPush.push(rel)
               }
             }
@@ -115,7 +121,9 @@ export function createMessageHandler(CLIENT_NAME, folderMap, ws) {
         const fullPath = path.split('/').join(path.sep)
         const full = fullPath.join(root, fullPath);
         fs.mkdirSync(path.dirname(full), {recursive: true})
-        fs.writeFileSync(full, Buffer.from(msg.content, 'base64'), 'utf8')
+        const receivedText = Buffer.from(msg.content, 'base64').toString('utf8');
+        const finalText = restoreLineEndings(receivedText, fullPath);
+        fs.writeFileSync(full, finalText, 'utf8')
         console.log(`↓ pulled ${msg.folder}/${msg.path}`)
       }
     }

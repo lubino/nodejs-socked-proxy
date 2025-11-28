@@ -2,6 +2,7 @@
 import chokidar from 'chokidar';
 import fs from 'fs';
 import path from 'path';
+import {normalizeLineEndings} from './file.js'
 
 export function initWatching(ws, CLIENT_NAME, WATCHED_DIRS) {
   const watchers = [];
@@ -41,13 +42,17 @@ export function initWatching(ws, CLIENT_NAME, WATCHED_DIRS) {
 
       // 4. Pošleme zmenu všetkým ostatným
       const mtimeNs = BigInt(Math.round(stat.mtimeMs * 1_000_000));
+      const content = event !== 'unlink'
+        ? Buffer.from(normalizeLineEndings(fs.readFileSync(filePath, 'utf8'), filePath)).toString('base64')
+        : undefined;
+
       ws.send(JSON.stringify({
         type: 'file-change',
         client: CLIENT_NAME,
         folder: folderName,           // napr. "gpap-core"
         path: relative,               // napr. "src/index.js"
         event,                        // "add" | "change" | "unlink"
-        content: event !== 'unlink' ? fs.readFileSync(filePath).toString('base64') : null,
+        content,
         mtimeNs: mtimeNs.toString()
       }));
 

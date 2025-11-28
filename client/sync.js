@@ -1,6 +1,7 @@
 // sync.js
 import fs from 'fs';
 import path from 'path';
+import {restoreLineEndings} from './file.js'
 
 export function applyRemoteFileChange(msg, folderMap) {
   const localRoot = folderMap[msg.folder];
@@ -18,7 +19,7 @@ export function applyRemoteFileChange(msg, folderMap) {
 
     // === TU JE CELÁ MAGIA ===
     if (msg.event === 'add' || msg.event === 'change') {
-      if (!msg.mtime) {
+      if (!msg.mtimeNs) {
         return
       }
       const remoteMtimeNs = BigInt(msg.mtimeNs);
@@ -28,19 +29,22 @@ export function applyRemoteFileChange(msg, folderMap) {
 
       try {
         const stat = fs.statSync(fullPath)
-        if (stat.mtimeMs * 1_000_000 >= remoteMtimeNs) {
+        const local = stat.mtimeMs * 1_000_000
+        if (local >= remoteMtimeNs) {
+          console.log(`- ignoring ${msg.event} ${msg.folder}/${msg.path} (mtime preserved ${local} <= ${remoteMtimeNs})`);
           return
         }
       } catch (e) {
       }
 
-      const buffer = Buffer.from(msg.content, 'base64');
-      fs.writeFileSync(fullPath, buffer, 'utf8');
+      const receivedText = Buffer.from(msg.content, 'base64').toString('utf8');
+      const finalText = restoreLineEndings(receivedText, fullPath);
+      fs.writeFileSync(fullPath, finalText, 'utf8');
       const atime = new Date();
       const mtime = new Date(remoteMtimeMs);
       fs.utimesSync(fullPath, mtime, mtime);
 
-      console.log(`↓ writing ${msg.event} ${msg.folder}/${msg.path} (mtime preserved ${msg.mtime})`);
+      console.log(`↓ writing ${msg.event} ${msg.folder}/${msg.path} (mtime preserved ${msg.mtimeNs})`);
       return;
     }
 
@@ -81,6 +85,3 @@ export function sendFileTree(ws, CLIENT_NAME, folderName, folderPath) {
   }));
 }
 
-export function requestMissingFiles(ws, CLIENT_NAME, remoteClient, folder, theirFiles) {
-  // You’ll implement this in handlers.js
-}
