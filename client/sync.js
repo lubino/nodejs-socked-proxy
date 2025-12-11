@@ -48,7 +48,7 @@ export function applyRemoteFileChange(msg, folderMap) {
 
     console.error(`Unknown event: ${msg.event}`);
   } catch (err) {
-    console.error(`Apply failed:`, err.message);
+    console.error(`Apply failed:`, err);
   }
 }
 

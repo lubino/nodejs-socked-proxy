@@ -13,13 +13,35 @@
 <body>
 <h1>WebSocket Sync Server</h1>
 <p>Status: <strong style="color:#7ee787">RUNNING</strong></p>
-<p>WebSocket endpoint: <code>ws://localhost:8080</code></p>
-<p>Connected clients: <strong id="count">0</strong></p>
+<p>WebSocket endpoint: <code id="wss">ws://localhost:8080</code></p>
+<p>Connected clients: <strong id="count">?</strong></p>
+<p>To connect to this server, download <a target="_blank" href="client.js">client.js</a>.
+    Then install dependencies and run it</p>
+<pre>
+    npm i ws
+    node client.js
+</pre>
 
 <script>
-  const ws = new WebSocket((location.protocol === "https:" ? "wss" : "ws") + '://' + location.host);
-  ws.onopen = () => document.getElementById('count').textContent = '1 (you are connected as test client)';
-  ws.onclose = () => document.getElementById('count').textContent = 'disconnected';
+  const id = "web"+Math.random().toString(36).substr(2, 9);
+  const socketAddress = (location.protocol === "https:" ? "wss" : "ws") + '://' + location.host
+  document.getElementById('wss').textContent = socketAddress;
+  const ws = new WebSocket(socketAddress);
+  ws.onopen = () => document.getElementById('status').textContent = 'connected';
+  ws.onclose = () => document.getElementById('status').textContent = 'disconnected';
+  ws.onmessage = event => {
+    let msg;
+    try { msg = JSON.parse(event.data); } catch { return; }
+    if (msg.type === 'auth') {
+      this.ws.send(JSON.stringify({ id }));
+      return;
+    }
+    if (msg.type === 'discovery') {
+      document.getElementById('status').textContent = msg.clients.length;
+      return;
+    }
+  }
 </script>
+
 </body>
 </html>

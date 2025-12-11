@@ -17,7 +17,10 @@ export function initWatching(ws, CLIENT_NAME, WATCHED_DIRS) {
     }
 
     const watcher = chokidar.watch(normalized, {
-      //ignored: /(^|[\/\\])\../,
+      ignored: (p) => {
+        const rel = p.replace(/\\/g, '/');  // Windows fix
+        return /[/](\.git|\.idea)[/]?/.test(rel);
+      },
       persistent: true,
       ignoreInitial: false
     });
