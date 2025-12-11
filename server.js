@@ -19,8 +19,7 @@ const server = createServer((req, res) => {
     res.end(JSON.stringify({keys: Object.keys(req), url: req.url, headers: req.headers}) + '\n');
   } else if (req.method === 'GET' && req.url === '/client.js') {
     const hostname = req.headers.host; // napr. "localhost:3000" alebo "example.com"
-    const protocol = req.headers['x-forwarded-proto'] || 'https:'; // 'https' ak je za proxy
-    const fullUrl = `${protocol === "https:" ? "wss" : "ws"}://${hostname}`;
+    const fullUrl = `wss://${hostname}`;
     const js = readFileSync(path.join(__dirname, 'client.js'), 'utf-8')
       .replace('ws://localhost:8080', fullUrl)
       .replace('UNIQUE_MY_ID', "N"+Math.random().toString(36).substr(2, 9))

@@ -1,8 +1,10 @@
 import WebSocket from 'ws';
 import net from 'net';
+import {HttpsProxyAgent} from 'https-proxy-agent'
 
 const SERVER_WS = 'ws://localhost:8080';
 const MY_ID = 'UNIQUE_MY_ID';  // Change to your unique ID
+const PROXY = ""
 
 class ProxyClient {
   constructor() {
@@ -13,7 +15,8 @@ class ProxyClient {
   }
 
   start() {
-    this.ws = new WebSocket(SERVER_WS)
+    const agent = PROXY ? new HttpsProxyAgent(PROXY) : undefined;
+    this.ws = new WebSocket(SERVER_WS, {agent})
 
     this.ws.on('open', () => console.log('WS connected'))
     this.ws.on('message', (data) => {
@@ -76,21 +79,36 @@ class ProxyClient {
     if (action === 'openPort') {
       try {
         const socket = net.createServer((clientSock) => {
+          this.services.get(payload.service)?.socket?.destroy()
+          this.services.set(service, {partnerId: payload.id, socket: clientSock, type: service})
+          // call openSocket
+          const [host, port] = payload.target.split(':')
+          this.ws.send(JSON.stringify({
+            type: 'forward',
+            service: "connect",
+            id: payload.id,
+            data: btoa(JSON.stringify({ id: MY_ID, port, host, service }))
+          }))
 
           clientSock.on('error', (e) => {
             console.log('Socket error', e)
           })
           clientSock.on('close', () => {
             console.log('Socket closed', service)
-            this.services.delete(service)
+            this.ws.send(JSON.stringify({
+              type: 'forward',
+              service: "disconnect",
+              id: payload.id,
+              data: btoa(JSON.stringify({ id: MY_ID, port, host, service }))
+            }))
           })
           clientSock.on('data', data => {
             this.send(service, data)
           })
-          this.services.get(payload.service)?.socket?.destroy()
-          this.services.set(service, {partnerId: payload.id, socket: clientSock, type: service})
         })
+
         socket.listen(payload.port)
+
         console.log(`Opened local port ${payload.port} for ${service}`)
       } catch (e) {
         console.error('Port error', e)
@@ -112,6 +130,12 @@ class ProxyClient {
           this.services.get(payload.service)?.socket?.destroy()
           this.services.set(service, {partnerId: payload.id, socket, type: service})
         })
+      } catch (e) {
+        console.error('Connecting error', e)
+      }
+    } else if (action === 'disconnect') {  // connect
+      try {
+        this.services.get(payload.service)?.socket?.destroy()
       } catch (e) {
         console.error('Connecting error', e)
       }
