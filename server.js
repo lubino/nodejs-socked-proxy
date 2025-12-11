@@ -14,9 +14,12 @@ const server = createServer((req, res) => {
     const html = readFileSync(path.join(__dirname, 'index.html'), 'utf-8');
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(html);
+  } else if (req.method === 'GET' && req.url === '/headers.json') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({keys: Object.keys(req), url: req.url, headers: req.headers}) + '\n');
   } else if (req.method === 'GET' && req.url === '/client.js') {
     const hostname = req.headers.host; // napr. "localhost:3000" alebo "example.com"
-    const protocol = req.headers['x-forwarded-proto'] || 'http'; // 'https' ak je za proxy
+    const protocol = req.headers['x-forwarded-proto'] || 'https:'; // 'https' ak je za proxy
     const fullUrl = `${protocol === "https:" ? "wss" : "ws"}://${hostname}`;
     const js = readFileSync(path.join(__dirname, 'client.js'), 'utf-8')
       .replace('ws://localhost:8080', fullUrl)
@@ -46,7 +49,7 @@ function broadcastDiscovery() {
     clients: clientIds
   });
 
-  clients.forEach(ws => {
+  clients.forEach((id, ws) => {
     if (ws.readyState === ws.OPEN) {
       ws.send(message);
     }

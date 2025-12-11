@@ -1,5 +1,5 @@
-const WebSocket = require('ws');
-const net = require('net');
+import WebSocket from 'ws';
+import net from 'net';
 
 const SERVER_WS = 'ws://localhost:8080';
 const MY_ID = 'UNIQUE_MY_ID';  // Change to your unique ID
@@ -16,7 +16,9 @@ class ProxyClient {
     this.ws = new WebSocket(SERVER_WS);
 
     this.ws.on('open', () => console.log('WS connected'));
-    this.ws.on('message', (data) => this.handle(raw = data.toString()));
+    this.ws.on('message', (data) => {
+      this.handle(data.toString())
+    });
     this.ws.on('close', () => {
       this.services.clear();
       setTimeout(() => this.start(), 3000);
