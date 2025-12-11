@@ -26,18 +26,18 @@
   const id = "web"+Math.random().toString(36).substr(2, 9);
   const socketAddress = (location.protocol === "https:" ? "wss" : "ws") + '://' + location.host
   document.getElementById('wss').textContent = socketAddress;
-  const ws = new WebSocket(socketAddress);
+  let ws = new WebSocket(socketAddress);
   ws.onopen = () => document.getElementById('status').textContent = 'connected';
   ws.onclose = () => document.getElementById('status').textContent = 'disconnected';
   ws.onmessage = event => {
     let msg;
     try { msg = JSON.parse(event.data); } catch { return; }
     if (msg.type === 'auth') {
-      this.ws.send(JSON.stringify({ id }));
+      ws.send(JSON.stringify({ id }));
       return;
     }
     if (msg.type === 'discovery') {
-      document.getElementById('status').textContent = msg.clients.length;
+      document.getElementById('count').textContent = msg.clients.length;
       return;
     }
   }
