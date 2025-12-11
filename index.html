@@ -41,6 +41,21 @@
       return;
     }
   }
+  let openSocket = (service, targetClientId, hostname, clientId, clientPort) => {
+    const [host, port] = hostname.split(':') || [ hostname, '80']
+    ws.send(JSON.stringify({
+      type: 'forward',
+      service: "connect",
+      id: targetClientId,
+      data: btoa(JSON.stringify({ id: clientId, port, host, service }))
+    }))
+    ws.send(JSON.stringify({
+      type: 'forward',
+      service: "openPort",
+      id: clientId,
+      data: btoa(JSON.stringify({ id: targetClientId, port: clientPort, service }))
+    }))
+  }
 </script>
 
 </body>
