@@ -86,7 +86,7 @@ wss.on('connection', (ws) => {
     }
 
     // Prvá správa musí byť autorizácia
-    if (!clients.has(ws) && msg.id && typeof msg.id === "string" && msg.typy === "auth") {
+    if (!clients.has(ws) && msg.id && typeof msg.id === "string" && msg.type === "auth") {
       const clientId = msg.id.trim();
       if ((PASSWORD && msg.password !== PASSWORD) || clientsById.has(clientId)) {
         ws.send(JSON.stringify({ type: "error", message: "ID already taken" }));
