@@ -2,9 +2,12 @@ import WebSocket from 'ws';
 import net from 'net';
 import {HttpsProxyAgent} from 'https-proxy-agent'
 
-const SERVER_WS = 'ws://localhost:8080';
-const MY_ID = 'UNIQUE_MY_ID';  // Change to your unique ID
-const PROXY = ""
+const {PASSWORD, PROXY, ID, URL} = process.env;
+
+const SERVER_WS = URL || 'ws://localhost:8080';
+const password = PASSWORD || ''
+const MY_ID = ID || 'UNIQUE_MY_ID';  // Change to your unique ID
+const proxy = PROXY || ''
 
 class ProxyClient {
   constructor() {
@@ -15,7 +18,7 @@ class ProxyClient {
   }
 
   start() {
-    const agent = PROXY ? new HttpsProxyAgent(PROXY) : undefined;
+    const agent = proxy ? new HttpsProxyAgent(proxy) : undefined;
     this.ws = new WebSocket(SERVER_WS, {agent})
 
     this.ws.on('open', () => console.log('WS connected'))
@@ -37,7 +40,7 @@ class ProxyClient {
     }
 
     if (msg.type === 'auth') {
-      this.ws.send(JSON.stringify({id: MY_ID}))
+      this.ws.send(JSON.stringify({id: MY_ID, password, type: 'auth'}))
       return
     }
     if (msg.type === 'discovery') {

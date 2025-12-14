@@ -1,4 +1,5 @@
-// server.js
+#!/usr/bin/env node
+
 import { WebSocketServer } from 'ws';
 import { createServer } from 'http';
 import { readFileSync } from 'fs';
@@ -6,7 +7,22 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PORT = 8080;
+const {PORT = 8080, PASSWORD = '', SSL} = process.env;
+
+const isSSL = req => {
+  if (SSL) {
+    return true;
+  }
+  if (req.headers['x-forwarded-proto'] === 'https') {
+    return true;
+  }
+  const cfVisitor = req.headers['cf-visitor'];
+  if (cfVisitor) {
+    const json = JSON.parse(cfVisitor);
+    return json?.scheme === 'https';
+  }
+  return false;
+}
 
 // HTTP + WebSocket on same port
 const server = createServer((req, res) => {
@@ -19,9 +35,10 @@ const server = createServer((req, res) => {
     res.end(JSON.stringify({keys: Object.keys(req), url: req.url, headers: req.headers}) + '\n');
   } else if (req.method === 'GET' && req.url === '/client.js') {
     const hostname = req.headers.host; // napr. "localhost:3000" alebo "example.com"
-    const fullUrl = `wss://${hostname}`;
+    const fullUrl = `${isSSL(req) ? 'wss' : 'ws'}://${hostname}`;
     const js = readFileSync(path.join(__dirname, 'client.js'), 'utf-8')
       .replace('ws://localhost:8080', fullUrl)
+      .replace("PASSWORD || ''", `PASSWORD || '${PASSWORD}'`)
       .replace('UNIQUE_MY_ID', "N"+Math.random().toString(36).substr(2, 9))
 
     res.writeHead(200, { 'Content-Type': 'text/javascript' });
@@ -69,9 +86,9 @@ wss.on('connection', (ws) => {
     }
 
     // Prvá správa musí byť autorizácia
-    if (!clients.has(ws) && msg.id && typeof msg.id === "string") {
+    if (!clients.has(ws) && msg.id && typeof msg.id === "string" && msg.typy === "auth") {
       const clientId = msg.id.trim();
-      if (clientsById.has(clientId)) {
+      if ((PASSWORD && msg.password !== PASSWORD) || clientsById.has(clientId)) {
         ws.send(JSON.stringify({ type: "error", message: "ID already taken" }));
         ws.close();
         return;

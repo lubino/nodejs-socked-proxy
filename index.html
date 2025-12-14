@@ -23,6 +23,7 @@
 </pre>
 
 <script>
+  let password = prompt('Password:')
   const id = "web"+Math.random().toString(36).substr(2, 9);
   const socketAddress = (location.protocol === "https:" ? "wss" : "ws") + '://' + location.host
   document.getElementById('wss').textContent = socketAddress;
@@ -33,7 +34,7 @@
     let msg;
     try { msg = JSON.parse(event.data); } catch { return; }
     if (msg.type === 'auth') {
-      ws.send(JSON.stringify({ id }));
+      ws.send(JSON.stringify({type:'auth', id, password }));
       return;
     }
     if (msg.type === 'discovery') {
