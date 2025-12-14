@@ -23,7 +23,8 @@
 </pre>
 
 <script>
-  let password = prompt('Password:')
+  let password = localStorage.getItem("password") || prompt('Password:')
+  localStorage.setItem("password", password)
   const id = "web"+Math.random().toString(36).substr(2, 9);
   const socketAddress = (location.protocol === "https:" ? "wss" : "ws") + '://' + location.host
   document.getElementById('wss').textContent = socketAddress;
